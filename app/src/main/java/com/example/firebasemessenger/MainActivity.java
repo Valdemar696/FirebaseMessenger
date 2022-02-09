@@ -1,5 +1,7 @@
 package com.example.firebasemessenger;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
@@ -14,6 +16,9 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 
+import com.google.firebase.database.ChildEventListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
@@ -33,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
 
     FirebaseDatabase database; // класс базы данных
     DatabaseReference messagesDatabaseReference; // класс- ссылка на базу данных, который указывает уже на опр. узел в БД
-    DatabaseReference usersDatabaseReference;
+    ChildEventListener messagesChildEventListener; // все изм-я, которые происходят в определ-м узле отображаются тут
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,11 +49,6 @@ public class MainActivity extends AppCompatActivity {
         // эта запись получает доступ ко всей бд, к корневой папке бд. Ссылка ведёт к бд на платформе firebase.
         messagesDatabaseReference = database.getReference().child("messages");
         // присваиваем к messagesDatabaseReference кусок от database по названию узла messages
-        usersDatabaseReference = database.getReference().child("users");
-
-        messagesDatabaseReference.child("message1").setValue("Hello Firebase!"); //уст. значение в вышеуказанный узел
-        messagesDatabaseReference.child("message2").setValue("Hello World!");
-        usersDatabaseReference.child("user1").setValue("Bob");
 
         progressBar = findViewById(R.id.progressBar);
         sendImageButton = findViewById(R.id.sendImageButton);
@@ -94,6 +94,14 @@ public class MainActivity extends AppCompatActivity {
         sendMessageButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
+                MessageModel message = new MessageModel();
+                message.setText(messageEditText.getText().toString());
+                message.setName(userName);
+                message.setImageUrl(null);
+
+                messagesDatabaseReference.push().setValue(message);
+
                 messageEditText.setText("");
 
             }
@@ -106,5 +114,38 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        messagesChildEventListener = new ChildEventListener() { // прикрепляем к messagesDatabaseReference  messagesChildEventListener
+            @Override// 5 методов анонимного класса генерируются сами
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String previousChildName) {
+
+                MessageModel message = dataSnapshot.getValue(MessageModel.class);
+                /* из dataSnapshot- общего "снимка" данных мы получаем значение, а внутри указываем, что это значение
+                 можно распознать в классе MessageModel. После того, как мы получаем этот объект, у него такие же поля,
+                  как и у нашего класса*/
+                adapter.add(message); // Устанавливаем к адаптеру разметки страницы эту хуету
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+
+            }
+        };
+
+        messagesDatabaseReference.addChildEventListener(messagesChildEventListener);
     }
 }
