@@ -14,6 +14,9 @@ import android.widget.ImageButton;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -28,10 +31,24 @@ public class MainActivity extends AppCompatActivity {
 
     private String userName;
 
+    FirebaseDatabase database; // класс базы данных
+    DatabaseReference messagesDatabaseReference; // класс- ссылка на базу данных, который указывает уже на опр. узел в БД
+    DatabaseReference usersDatabaseReference;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        database = FirebaseDatabase.getInstance("https://fir-messenger-67f8c-default-rtdb.europe-west1.firebasedatabase.app/");
+        // эта запись получает доступ ко всей бд, к корневой папке бд. Ссылка ведёт к бд на платформе firebase.
+        messagesDatabaseReference = database.getReference().child("messages");
+        // присваиваем к messagesDatabaseReference кусок от database по названию узла messages
+        usersDatabaseReference = database.getReference().child("users");
+
+        messagesDatabaseReference.child("message1").setValue("Hello Firebase!"); //уст. значение в вышеуказанный узел
+        messagesDatabaseReference.child("message2").setValue("Hello World!");
+        usersDatabaseReference.child("user1").setValue("Bob");
 
         progressBar = findViewById(R.id.progressBar);
         sendImageButton = findViewById(R.id.sendImageButton);
@@ -68,12 +85,11 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable s) {
-                Log.i("a", "bruh");
             }
         });
 
         messageEditText.setFilters(new InputFilter[]
-                {new InputFilter.LengthFilter(500)}); //ильтр на макс. кол-во символов
+                {new InputFilter.LengthFilter(500)}); //fильтр на макс. кол-во символов
 
         sendMessageButton.setOnClickListener(new View.OnClickListener() {
             @Override
