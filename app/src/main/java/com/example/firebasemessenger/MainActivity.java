@@ -44,6 +44,8 @@ public class MainActivity extends AppCompatActivity {
     FirebaseDatabase database; // класс базы данных
     DatabaseReference messagesDatabaseReference; // класс- ссылка на базу данных, который указывает уже на опр. узел в БД
     ChildEventListener messagesChildEventListener; // все изм-я, которые происходят в определ-м узле отображаются тут
+    DatabaseReference usersDatabaseReference;
+    ChildEventListener usersChildEventListener;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,13 +56,21 @@ public class MainActivity extends AppCompatActivity {
         // эта запись получает доступ ко всей бд, к корневой папке бд. Ссылка ведёт к бд на платформе firebase.
         messagesDatabaseReference = database.getReference().child("messages");
         // присваиваем к messagesDatabaseReference кусок от database по названию узла messages
+        usersDatabaseReference = database.getReference().child("users");
 
         progressBar = findViewById(R.id.progressBar);
         sendImageButton = findViewById(R.id.sendImageButton);
         sendMessageButton = findViewById(R.id.sendMessageButton);
         messageEditText = findViewById(R.id.messageEditText);
 
-        userName = "Default User";
+        Intent intent = getIntent();
+        /* интент - "намерение". Это способ межпроцессного взаимодействия.
+        Это сообщения, которые приложения или система посылают другим приложениям, а те как-то реагируют. */
+        if(intent != null) {
+            userName = intent.getStringExtra("userName");
+        } else {
+            userName = "Default User";
+        }
 
         messageListView = findViewById(R.id.messageListView);
         List<MessageModel> messageModels = new ArrayList<>();
@@ -119,6 +129,39 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        usersChildEventListener = new ChildEventListener() {
+            @Override
+            public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String previousChildName) {
+                User user = dataSnapshot.getValue(User.class);
+                if (user.getFirebaseId().equals(FirebaseAuth.getInstance().getCurrentUser().getUid())) {
+                    userName = user.getName();
+                }
+
+            }
+
+            @Override
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String previousChildName) {
+
+            }
+
+            @Override
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
+
+            }
+
+            @Override
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String previousChildName) {
+
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        };
+
+        usersDatabaseReference.addChildEventListener(usersChildEventListener);
+
         messagesChildEventListener = new ChildEventListener() { // прикрепляем к messagesDatabaseReference  messagesChildEventListener
             @Override// 5 методов анонимного класса генерируются сами
             public void onChildAdded(@NonNull DataSnapshot dataSnapshot, @Nullable String previousChildName) {
@@ -131,22 +174,22 @@ public class MainActivity extends AppCompatActivity {
             }
 
             @Override
-            public void onChildChanged(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+            public void onChildChanged(@NonNull DataSnapshot dataSnapshot, @Nullable String previousChildName) {
 
             }
 
             @Override
-            public void onChildRemoved(@NonNull DataSnapshot snapshot) {
+            public void onChildRemoved(@NonNull DataSnapshot dataSnapshot) {
 
             }
 
             @Override
-            public void onChildMoved(@NonNull DataSnapshot snapshot, @Nullable String previousChildName) {
+            public void onChildMoved(@NonNull DataSnapshot dataSnapshot, @Nullable String previousChildName) {
 
             }
 
             @Override
-            public void onCancelled(@NonNull DatabaseError error) {
+            public void onCancelled(@NonNull DatabaseError databaseError) {
 
             }
         };
