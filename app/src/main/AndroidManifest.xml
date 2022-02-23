@@ -10,7 +10,7 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.FirebaseMessenger">
         <activity
-            android:name=".MainActivity"
+            android:name=".ChatActivity"
             android:exported="false" />
         <activity
             android:name=".SignInActivity"
