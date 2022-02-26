@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "42160160641",
+    "firebase_url": "https://fir-messenger-67f8c-default-rtdb.europe-west1.firebasedatabase.app/",
     "project_id": "fir-messenger-67f8c",
     "storage_bucket": "fir-messenger-67f8c.appspot.com"
   },
