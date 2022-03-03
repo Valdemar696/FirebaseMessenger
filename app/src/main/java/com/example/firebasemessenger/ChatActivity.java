@@ -47,6 +47,7 @@ public class ChatActivity extends AppCompatActivity {
 
     private String userName;
     private String recipientUserId;
+    private String recipientUserName;
 
     private static final int RC_IMAGE_PICKER = 123;
 
@@ -68,12 +69,13 @@ public class ChatActivity extends AppCompatActivity {
         auth = FirebaseAuth.getInstance();
 
         Intent intent = getIntent();
-        if(intent != null) {
+        if (intent != null) {
             userName = intent.getStringExtra("userName");
             recipientUserId = intent.getStringExtra("recipientUserId");
-        } else {
-            userName = "Default User";
+            recipientUserName = intent.getStringExtra("recipientUserName");
         }
+
+        setTitle("Chat with " + recipientUserName);
 
         database = FirebaseDatabase.getInstance("https://fir-messenger-67f8c-default-rtdb.europe-west1.firebasedatabase.app/");
         // эта запись получает доступ ко всей бд, к корневой папке бд. Ссылка ведёт к бд на платформе firebase.
@@ -195,9 +197,12 @@ public class ChatActivity extends AppCompatActivity {
                  можно распознать в классе MessageModel. После того, как мы получаем этот объект, у него такие же поля,
                   как и у нашего класса*/
                 if (message.getSender().equals(auth.getCurrentUser().getUid())
-                && message.getRecipient().equals(recipientUserId) ||
-                        message.getRecipient().equals(auth.getCurrentUser().getUid())
+                && message.getRecipient().equals(recipientUserId)) {
+                    message.setMine(true);
+                    adapter.add(message); // Устанавливаем к адаптеру разметки страницы это сообщение
+                } else if (message.getRecipient().equals(auth.getCurrentUser().getUid())
                                 && message.getSender().equals(recipientUserId) ) {
+                    message.setMine(false);
                     adapter.add(message); // Устанавливаем к адаптеру разметки страницы это сообщение
                 }
             }

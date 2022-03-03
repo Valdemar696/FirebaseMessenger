@@ -3,6 +3,7 @@ package com.example.firebasemessenger;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.DividerItemDecoration;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -96,6 +97,7 @@ public class UserListActivity extends AppCompatActivity {
 
         userRecyclerView = findViewById(R.id.userListRecyclerView);
         userRecyclerView.setHasFixedSize(true);
+        userRecyclerView.addItemDecoration(new DividerItemDecoration(userRecyclerView.getContext(), DividerItemDecoration.VERTICAL));
         userLayoutManager = new LinearLayoutManager(this);
         userAdapter = new UserAdapter(userArrayList);
 
@@ -115,6 +117,7 @@ public class UserListActivity extends AppCompatActivity {
         /* интент - "намерение". Это способ межпроцессного взаимодействия.
         Это сообщения, которые приложения или система посылают другим приложениям, а те как-то реагируют. */
         intent.putExtra("recipientUserId", userArrayList.get(position).getFirebaseId());
+        intent.putExtra("recipientUserName", userArrayList.get(position).getName());
         intent.putExtra("userName", userName);
         startActivity(intent);
     }
