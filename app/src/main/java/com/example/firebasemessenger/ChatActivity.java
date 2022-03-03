@@ -46,22 +46,34 @@ public class ChatActivity extends AppCompatActivity {
     private EditText messageEditText;
 
     private String userName;
+    private String recipientUserId;
 
     private static final int RC_IMAGE_PICKER = 123;
 
-    FirebaseDatabase database; // класс базы данных
-    DatabaseReference messagesDatabaseReference; // класс- ссылка на базу данных, который указывает уже на опр. узел в БД
-    ChildEventListener messagesChildEventListener; // все изм-я, которые происходят в определ-м узле отображаются тут
-    DatabaseReference usersDatabaseReference;
-    ChildEventListener usersChildEventListener;
+    private FirebaseAuth auth;
+    private FirebaseDatabase database; // класс базы данных
+    private DatabaseReference messagesDatabaseReference; // класс- ссылка на базу данных, который указывает уже на опр. узел в БД
+    private ChildEventListener messagesChildEventListener; // все изм-я, которые происходят в определ-м узле отображаются тут
+    private DatabaseReference usersDatabaseReference;
+    private ChildEventListener usersChildEventListener;
 
-    FirebaseStorage storage;
-    StorageReference chatImagesStorageReference;
+    private FirebaseStorage storage;
+    private StorageReference chatImagesStorageReference;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chat);
+
+        auth = FirebaseAuth.getInstance();
+
+        Intent intent = getIntent();
+        if(intent != null) {
+            userName = intent.getStringExtra("userName");
+            recipientUserId = intent.getStringExtra("recipientUserId");
+        } else {
+            userName = "Default User";
+        }
 
         database = FirebaseDatabase.getInstance("https://fir-messenger-67f8c-default-rtdb.europe-west1.firebasedatabase.app/");
         // эта запись получает доступ ко всей бд, к корневой папке бд. Ссылка ведёт к бд на платформе firebase.
@@ -76,15 +88,6 @@ public class ChatActivity extends AppCompatActivity {
         sendImageButton = findViewById(R.id.sendImageButton);
         sendMessageButton = findViewById(R.id.sendMessageButton);
         messageEditText = findViewById(R.id.messageEditText);
-
-        Intent intent = getIntent();
-        /* интент - "намерение". Это способ межпроцессного взаимодействия.
-        Это сообщения, которые приложения или система посылают другим приложениям, а те как-то реагируют. */
-        if(intent != null) {
-            userName = intent.getStringExtra("userName");
-        } else {
-            userName = "Default User";
-        }
 
         messageListView = findViewById(R.id.messageListView);
         List<MessageModel> messageModels = new ArrayList<>();
@@ -127,6 +130,8 @@ public class ChatActivity extends AppCompatActivity {
                 MessageModel message = new MessageModel();
                 message.setText(messageEditText.getText().toString());
                 message.setName(userName);
+                message.setSender(auth.getCurrentUser().getUid());
+                message.setRecipient(recipientUserId);
                 message.setImageUrl(null);
 
                 messagesDatabaseReference.push().setValue(message);
@@ -189,7 +194,12 @@ public class ChatActivity extends AppCompatActivity {
                 /* из dataSnapshot- общего "снимка" данных мы получаем значение, а внутри указываем, что это значение
                  можно распознать в классе MessageModel. После того, как мы получаем этот объект, у него такие же поля,
                   как и у нашего класса*/
-                adapter.add(message); // Устанавливаем к адаптеру разметки страницы эту хуету
+                if (message.getSender().equals(auth.getCurrentUser().getUid())
+                && message.getRecipient().equals(recipientUserId) ||
+                        message.getRecipient().equals(auth.getCurrentUser().getUid())
+                                && message.getSender().equals(recipientUserId) ) {
+                    adapter.add(message); // Устанавливаем к адаптеру разметки страницы это сообщение
+                }
             }
 
             @Override
@@ -267,6 +277,8 @@ public class ChatActivity extends AppCompatActivity {
                         MessageModel message = new MessageModel();
                         message.setImageUrl(downloadUri.toString());
                         message.setName(userName);
+                        message.setSender(auth.getCurrentUser().getUid());
+                        message.setRecipient(recipientUserId);
                         messagesDatabaseReference.push().setValue(message);
                     } else {
                         // Handle failures

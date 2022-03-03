@@ -33,10 +33,10 @@ public class SignInActivity extends AppCompatActivity {
     private EditText confirmPasswordEditText;
     private TextView toggleLoginSignUpTextView;
 
-    private boolean loginModeActive;
+    public boolean loginModeActive;
 
-    FirebaseDatabase database;
-    DatabaseReference usersDatabaseReference;
+    private FirebaseDatabase database;
+    private DatabaseReference usersDatabaseReference;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -78,8 +78,6 @@ public class SignInActivity extends AppCompatActivity {
                 Toast.makeText(this, "Password must be at least 7 characters", Toast.LENGTH_SHORT).show();
             } else if (emailEditText.getText().toString().trim().equals("")) {
                 Toast.makeText(this, "Please, input your email", Toast.LENGTH_SHORT).show();
-            } else if (confirmPasswordEditText.getText().toString().trim().length() < 7) {
-                Toast.makeText(this, "Password must be at least 7 characters", Toast.LENGTH_SHORT).show();
             } else {
                 auth.signInWithEmailAndPassword(email, password) //предопр. метод из фаербейза, позволяющий залогиниться
                         .addOnCompleteListener(this, new OnCompleteListener<AuthResult>() {
@@ -89,7 +87,6 @@ public class SignInActivity extends AppCompatActivity {
                                     // Sign in success, update UI with the signed-in user's information
                                     Log.d(TAG, "createUserWithEmail:success");
                                     FirebaseUser user = auth.getCurrentUser();
-                                    createUser(user);
                                     Intent intent = new Intent(SignInActivity.this, UserListActivity.class);
                                     intent.putExtra("userName", nameEditText.getText().toString().trim());
                                     startActivity(intent);
